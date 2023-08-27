@@ -1,0 +1,7 @@
+{
+  "name": "Alphabet Chaser",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
