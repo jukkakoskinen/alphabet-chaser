@@ -2,9 +2,10 @@
     <div>
         <div id="mainInput">
             <ion-input @focusout="calculateLetters" :clear-input="true" label="Please Enter Words: "></ion-input>
+            <ion-range @ionChange="onIonChange" label="Speed! "></ion-range>
         </div>
         <div>
-            <canvas id="mainCanvas" width="300" height="500"></canvas>
+            <canvas id="mainCanvas"></canvas>
         </div>
         <div>
             <ion-button @mousedown="Left" @mouseup="stopMoving">Left</ion-button>
@@ -16,29 +17,25 @@
 </template>
 
 <script setup>
-import { IonButton, IonInput } from '@ionic/vue';
+import { IonButton, IonInput, IonRange } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 
+// Canvas
 const mainCanvas = ref(null);
 const canvasContext = ref(null)
 //let bgImage = ref(null);
+// Indexes
 let i = -1;
-let correctLetters = '';
-let wrongLetters = [];
 let globalIndex = 0;
-let spriteCoords = { x: null, y: null };
-let correctLetterCoords = { x: 150, y: 150 };
-let wrongLettersCoords = [
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null },
-    { x: null, y: null }];
+// Letters
+let correctLetters = 'abc';
+let wrongLetters = [] = 'defghijklmnopqrstuvwxyz'.split('');
+// Board size
+const tileSize = 20;
+const rows = 25;
+const cols = 15;
+const fontSize = '30px'
+// Directions and movement
 let isMoving = true;
 let direction = {
     left: 0,
@@ -47,21 +44,37 @@ let direction = {
     down: 3,
 }
 let currentDirection = null;
+// Coordinates
+let spriteCoords = { x: 0, y: 0 };
+let correctLetterCoords = { x: 100, y: 100 };
+let wrongLettersCoords = [
+    { x: 20, y: 20 },
+    { x: 40, y: 40 },
+    { x: 60, y: 60 },
+    { x: 80, y: 80 },
+    { x: 100, y: 100 },
+    { x: 120, y: 120 },
+    { x: 140, y: 140 },
+    { x: 160, y: 160 },
+    { x: 180, y: 180 },
+    { x: 200, y: 200 }
+];
 
 const gameState = {
-    speed: 2,
+    speed: 5, // * (tileSize/4),
     direction: direction.right,
     score: 0,
     gameOver: false,
 }
 
 onMounted(() => {
-    // Add a global event listener for keydown
-    window.addEventListener("keydown", handleKeyPress);
-    window.addEventListener("keyup", stopMoving);
-
     mainCanvas.value = document.getElementById('mainCanvas');
+    mainCanvas.value.width = cols * tileSize;
+    mainCanvas.value.height = rows * tileSize;
     canvasContext.value = mainCanvas.value.getContext('2d');
+
+    correctLetterGenerator();
+    wrongLetterGenerator();
 
     animationLoop();
 });
@@ -71,55 +84,64 @@ function animationLoop() {
         if (currentDirection === direction.up && spriteCoords.y > 0) {
             spriteCoords.y -= gameState.speed;
         }
-        else if (currentDirection === direction.down && spriteCoords.y < mainCanvas.value.height - 45) {
+        else if (currentDirection === direction.down && spriteCoords.y < tileSize * (rows - 3)) {
             spriteCoords.y += gameState.speed;
         }
         else if (currentDirection === direction.left && spriteCoords.x > 0) {
             spriteCoords.x -= gameState.speed;
         }
-        else if (currentDirection === direction.right && spriteCoords.x < mainCanvas.value.width - 15) {
+        else if (currentDirection === direction.right && spriteCoords.x < tileSize * (cols - 1)) {
             spriteCoords.x += gameState.speed;
         }
-
-        //draw the background
-        canvasContext.value.fillStyle = 'green';
-        canvasContext.value.fillRect(0, 0, 300, 500);
-        //canvasContext.value.drawImage(bgImage.value, 0, 0, 300, 500);
-
-        //draw score
-        canvasContext.value.fillStyle = 'black';
-        canvasContext.value.font = "24px Arial"
-        canvasContext.value.fillText('Score: ' + gameState.score, 5, 490);
-
-        //draw sprite
-        canvasContext.value.fillStyle = 'red';
-        canvasContext.value.fillRect(spriteCoords.x, spriteCoords.y, 15, 15);
-
-        if ((Math.abs(spriteCoords.x - correctLetterCoords.x) <= 8) && (Math.abs(spriteCoords.y - correctLetterCoords.y) <= 15)) {
-            gameState.score++;
-            //draw correct letter
-            correctLetterGenerator();
-
-            //draw wrong letter
-            wrongLetterGenerator();
-
-            console.log('correctLetters ' + correctLetters)
-            console.log('correctLetters length ' + correctLetters.length)
-            console.log('index ' + globalIndex)
-
-            //TODO fix this loop bug
-            //I think it is just the order in which it's called.
-            if (globalIndex <= correctLetters.length - 2) {
-                globalIndex++;
-            } else {
-                globalIndex = 0;
-            }
-
-        }
-        correctLetterDraw();
-        wrongLetterDraw()
-        requestAnimationFrame(animationLoop);
     }
+
+    //draw the background
+    canvasContext.value.fillStyle = 'green';
+    canvasContext.value.fillRect(0, 0, cols * tileSize, rows * tileSize);
+    //canvasContext.value.drawImage(bgImage.value, 0, 0, 300, 500);
+
+    //draw score
+    canvasContext.value.fillStyle = 'black';
+    canvasContext.value.font = `${fontSize } Arial`
+    const scorePadding = 7;
+    canvasContext.value.textBaseline = "bottom"; //note this is different from the default 'alphabetic' baseline.
+    canvasContext.value.fillText('Score: ' + gameState.score, scorePadding, (rows * tileSize) - scorePadding);
+
+    //draw sprite
+    canvasContext.value.fillStyle = 'red';
+    canvasContext.value.fillRect(spriteCoords.x, spriteCoords.y, tileSize, tileSize);
+
+    const collisionDistance = 12;
+    console.log('x ' + Math.abs(spriteCoords.x - correctLetterCoords.x))
+    console.log('y' + Math.abs(spriteCoords.y - correctLetterCoords.y))
+    if ((Math.abs(spriteCoords.x - correctLetterCoords.x) < collisionDistance) && ((Math.abs(spriteCoords.y - correctLetterCoords.y)) < collisionDistance)) {
+        gameState.score++;
+        //draw correct letter
+        correctLetterGenerator();
+
+        //draw wrong letter
+        wrongLetterGenerator();
+
+        //TODO fix this loop bug
+        //I think it is just the order in which it's called.
+        if (globalIndex <= correctLetters.length - 2) {
+            globalIndex++;
+        } else {
+            globalIndex = 0;
+        }
+
+    }
+    correctLetterDraw();
+    wrongLetterDraw();
+
+    requestAnimationFrame(animationLoop)
+
+    //console.log('speed test')
+    /*  let fps = 32;
+     setTimeout(() => {
+         requestAnimationFrame(animationLoop);
+     }, 1000 / fps); */
+
 }
 
 function calculateLetters(event) {
@@ -136,75 +158,65 @@ function calculateLetters(event) {
     wrongLetters = alphabet.split('');
 }
 
+function randomInteger(min, max) {
+    console.log('randomInt ' + ((Math.floor(Math.random() * (max - min + 1)) + min)) * tileSize) * tileSize;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function correctLetterGenerator() {
-    correctLetterCoords.x = Math.floor(Math.random() * 280 + 10);
-    correctLetterCoords.y = Math.floor(Math.random() * 450 + 20);
+    //TODO check this logic
+    for (let i = 0; i < wrongLettersCoords.length - 1; i++) {
+        correctLetterCoords.x = (randomInteger(3, (cols - 3)) * tileSize); //the minus brings them in from the edge.
+        correctLetterCoords.y = (randomInteger(3, (rows - 4)) * tileSize); //the minus is for space for the score board.
+    }
 }
 function correctLetterDraw() {
     canvasContext.value.fillStyle = 'blue';
-    canvasContext.value.font = "bold 36px Arial"
+    canvasContext.value.font = `bold ${fontSize } Arial`;
+    canvasContext.value.textBaseline = "top";
     canvasContext.value.fillText(correctLetters[globalIndex], correctLetterCoords.x, correctLetterCoords.y);
 }
-
 function wrongLetterGenerator() {
-    console.dir(wrongLettersCoords)
     for (let i = 0; i <= wrongLettersCoords.length - 1; i++) {
-        wrongLettersCoords[i].x = Math.floor(Math.random() * 280 + 10);
-        wrongLettersCoords[i].y = Math.floor(Math.random() * 450 + 20);
+        wrongLettersCoords[i].x = (randomInteger(3, (cols - 3)) * tileSize); //the minus brings them in from the edge.
+        wrongLettersCoords[i].y = (randomInteger(3, (rows - 4)) * tileSize); //the minus is for space for the score board.
     }
-    console.dir(wrongLettersCoords)
+
 }
 function wrongLetterDraw() {
     canvasContext.value.fillStyle = 'orange';
-    canvasContext.value.font = "bold 36px Arial"
-    canvasContext.value.fillText(wrongLetters[0], wrongLettersCoords[0].x, wrongLettersCoords[0].y);
-    canvasContext.value.fillText(wrongLetters[1], wrongLettersCoords[1].x, wrongLettersCoords[1].y);
-    canvasContext.value.fillText(wrongLetters[2], wrongLettersCoords[2].x, wrongLettersCoords[2].y);
-    canvasContext.value.fillText(wrongLetters[3], wrongLettersCoords[3].x, wrongLettersCoords[3].y);
-    canvasContext.value.fillText(wrongLetters[4], wrongLettersCoords[4].x, wrongLettersCoords[4].y);
-    canvasContext.value.fillText(wrongLetters[5], wrongLettersCoords[5].x, wrongLettersCoords[5].y);
-    canvasContext.value.fillText(wrongLetters[6], wrongLettersCoords[6].x, wrongLettersCoords[6].y);
-    canvasContext.value.fillText(wrongLetters[7], wrongLettersCoords[7].x, wrongLettersCoords[7].y);
-    canvasContext.value.fillText(wrongLetters[8], wrongLettersCoords[8].x, wrongLettersCoords[8].y);
-    canvasContext.value.fillText(wrongLetters[9], wrongLettersCoords[9].x, wrongLettersCoords[9].y);
-}
-
-function handleKeyPress(event) {
-    // Check which arrow key was pressed
-    if (event.key === "ArrowUp") {
-        Up();
-    } else if (event.key === "ArrowDown") {
-        Down();
-    } else if (event.key === "ArrowLeft") {
-        Left();
-    } else if (event.key === "ArrowRight") {
-        Right();
+    canvasContext.value.font = `bold ${fontSize } Arial`
+    canvasContext.value.textBaseline = "top";
+    for (let i = 0; i <= 10 - 1; i++) {
+        canvasContext.value.fillText(wrongLetters[i], wrongLettersCoords[i].x, wrongLettersCoords[i].y);
     }
 }
 
 function Left() {
     isMoving = true
     currentDirection = direction.left
-    animationLoop();
+    //animationLoop();
 }
 function Right() {
     isMoving = true
     currentDirection = direction.right
-    animationLoop();
+    //animationLoop();
 }
 function Up() {
     isMoving = true
     currentDirection = direction.up
-    animationLoop();
+    //animationLoop();
 }
 function Down() {
     isMoving = true
     currentDirection = direction.down
-    animationLoop();
+    //animationLoop();
 }
 
 function stopMoving() {
     isMoving = false;
+    //console.log('spite coords ')
+    //console.dir(spriteCoords)
 }
 
 </script>
@@ -218,4 +230,5 @@ function stopMoving() {
     width: 300px;
     margin-left: 400px;
 }
+
 </style>
