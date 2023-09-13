@@ -11,9 +11,8 @@
         </div>
         <div>
             <ion-button @mousedown="Left" @mouseup="stopMoving" @touchstart="Left" @touchend="stopMoving">Left</ion-button>
-            <ion-button @mousedown="Right" @mouseup="stopMoving" @touchstart="Right"
-                @touchend="stopMoving">Right</ion-button>
-            <ion-button @mousedown="Up" @mouseup="stopMoving" @touchend="stopMoving">Up</ion-button>
+            <ion-button @mousedown="Right" @mouseup="stopMoving" @touchstart="Right" @touchend="stopMoving">Right</ion-button>
+            <ion-button @mousedown="Up" @mouseup="stopMoving" @touchstart="Up" @touchend="stopMoving">Up</ion-button>
             <ion-button @mousedown="Down" @mouseup="stopMoving" @touchstart="Down" @touchend="stopMoving">Down</ion-button>
         </div>
     </div>
@@ -97,7 +96,7 @@ function animationLoop() {
         if (currentDirection === direction.up && spriteCoords.y > 0) {
             spriteCoords.y -= gameState.speed;
         }
-        else if (currentDirection === direction.down && spriteCoords.y < tileSize * (rows - 3)) {
+        else if (currentDirection === direction.down && spriteCoords.y < tileSize * (rows - 2)) {
             spriteCoords.y += gameState.speed;
         }
         else if (currentDirection === direction.left && spriteCoords.x > 0) {
