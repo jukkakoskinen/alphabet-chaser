@@ -10,11 +10,11 @@
             <canvas id="mainCanvas"></canvas>
         </div>
         <div>
-            <ion-button @mousedown="Left" @mouseup="stopMoving" @touchstart="Left" @touchend="stopMoving">Left</ion-button>
-            <ion-button @mousedown="Right" @mouseup="stopMoving" @touchstart="Right"
+            <ion-button @mousedown="left" @mouseup="stopMoving" @touchstart="left" @touchend="stopMoving">Left</ion-button>
+            <ion-button @mousedown="right" @mouseup="stopMoving" @touchstart="right"
                 @touchend="stopMoving">Right</ion-button>
-            <ion-button @mousedown="Up" @mouseup="stopMoving" @touchstart="Up" @touchend="stopMoving">Up</ion-button>
-            <ion-button @mousedown="Down" @mouseup="stopMoving" @touchstart="Down" @touchend="stopMoving">Down</ion-button>
+            <ion-button @mousedown="up" @mouseup="stopMoving" @touchstart="up" @touchend="stopMoving">Up</ion-button>
+            <ion-button @mousedown="down" @mouseup="stopMoving" @touchstart="down" @touchend="stopMoving">Down</ion-button>
         </div>
     </div>
 </template>
@@ -32,6 +32,10 @@ useBackButton(-1, () => {
     }
 });
 
+//TODO 
+// refactor loops using cleaner loops foreach for in for of etc
+// refactor using spread ... for array assignments. 
+
 // Canvas
 const mainCanvas = ref(null);
 const canvasContext = ref(null)
@@ -39,13 +43,14 @@ const canvasContext = ref(null)
 // Indexes
 let globalIndex = 0;
 // Letters
-let correctLetters = 'abc';
-let wrongLetters = 'defghijklmnopqrstuvwxyz'.split('');
+let correctLetters = 'hello';
+let wrongLetters = 'abcdfgijkmnpqrstuvwxyz'.split('');
 // Board size
 const tileSize = 40;
 const rows = 15;
 const cols = 9;
 const fontSize = '30px'
+const largeFontSize = '60px'
 // Directions and movement
 let speed = 1;
 let isMoving = true;
@@ -64,14 +69,14 @@ let gameOver = false;
 let spriteCoords = {
     x: 0,
     y: 0,
-    get row() { return Math.floor(this.x / tileSize) },
-    get col() { return Math.floor(this.y / tileSize) }
+    get row() { return Math.floor((this.x + (tileSize / 2)) / tileSize) },
+    get col() { return Math.floor((this.y + (tileSize / 2)) / tileSize) }
 };
 let correctLetterCoords = {
     x: 100,
     y: 100,
-    get row() { return Math.floor(this.x / tileSize) },
-    get col() { return Math.floor(this.y / tileSize) }
+    get row() { return Math.floor((this.x + (tileSize / 2)) / tileSize) },
+    get col() { return Math.floor((this.y + (tileSize / 2)) / tileSize) }
 };
 let wrongLettersCoords = [
     { x: tileSize, y: tileSize, get row() { return Math.floor(this.x / tileSize) }, get col() { return Math.floor(this.y / tileSize) } },
@@ -84,11 +89,9 @@ onMounted(() => {
     canvasContext.value = mainCanvas.value.getContext('2d');
 
     // Generate the initial wrong letters
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 11; i++) {
         wrongLettersCoords.push({ x: tileSize * i, y: tileSize * i, get row() { return Math.floor(this.x / tileSize) }, get col() { return Math.floor(this.y / tileSize) } });
     }
-
-    console.log(wrongLettersCoords)
 
     wrongLetterGenerator();
     correctLetterGenerator();
@@ -112,30 +115,15 @@ function animationLoop() {
         }
     }
 
-    //draw the background
-    canvasContext.value.fillStyle = 'green';
-    canvasContext.value.fillRect(0, 0, cols * tileSize, rows * tileSize);
-    //canvasContext.value.drawImage(bgImage.value, 0, 0, 300, 500);
+    drawBackground();
+    drawWord();
+    drawScore();
+    drawLevel();
+    drawSprite();
 
-    //draw score
-    canvasContext.value.fillStyle = 'black';
-    canvasContext.value.font = `${fontSize} Arial`
-    const scorePadding = 7;
-    canvasContext.value.textBaseline = "bottom"; //note this is different from the default 'alphabetic' baseline.
-    canvasContext.value.fillText('Score: ' + score, scorePadding, (rows * tileSize) - scorePadding);
-
-    //draw level
-    canvasContext.value.fillStyle = 'black';
-    canvasContext.value.font = `${fontSize} Arial`
-    canvasContext.value.textBaseline = "bottom"; //note this is different from the default 'alphabetic' baseline.
-    canvasContext.value.fillText('Level: ' + level, ((cols - 3) * tileSize - scorePadding), (rows * tileSize) - scorePadding);
-
-    //draw sprite
-    canvasContext.value.fillStyle = 'red';
-    canvasContext.value.fillRect(spriteCoords.x, spriteCoords.y, tileSize, tileSize);
-
-    const collisionDistance = 12;
-    if ((Math.abs(spriteCoords.x - correctLetterCoords.x) < collisionDistance) && ((Math.abs(spriteCoords.y - correctLetterCoords.y)) < collisionDistance)) {
+    // Detect sprite hits the correct letter.
+    // const collisionDistance = 0;
+    if ((spriteCoords.row === correctLetterCoords.row) && (spriteCoords.col === correctLetterCoords.col)) {
         score++;
         // create new coords for wrong letters
         wrongLetterGenerator();
@@ -152,18 +140,36 @@ function animationLoop() {
         }
 
     }
-    wrongLettersCoords.forEach((wrongLetter) => {
-        if ((Math.abs(spriteCoords.x - wrongLetter.x) < collisionDistance) && ((Math.abs(spriteCoords.y - wrongLetter.y)) < collisionDistance)) {
-            score--;
-            spriteCoords.x -= tileSize;
-            spriteCoords.y -= tileSize;
+
+    // WrongLetter collisions.
+    if (wrongLettersCoords.some((wrongLetter) => wrongLetter.row === spriteCoords.row && wrongLetter.col === spriteCoords.col)) {
+        score--;
+        switch (currentDirection) {
+            case direction.left:
+                spriteCoords.x += tileSize;
+                break;
+            case direction.right:
+                spriteCoords.x -= tileSize;
+                break;
+            case direction.up:
+                spriteCoords.y += tileSize;
+                break;
+            case direction.down:
+                spriteCoords.y -= tileSize;
+                break;
         }
-    })
 
-    // if (wrongLettersCoords.some(element => Math.abs((element.x - spriteCoords.x) < 0) && Math.abs((element.y - spriteCoords.y) < 0))) {}
-
+    }
 
 
+
+    // wrongLettersCoords.forEach((wrongLetter) => {
+    //     if ((Math.abs(spriteCoords.x - wrongLetter.x) < collisionDistance) && ((Math.abs(spriteCoords.y - wrongLetter.y)) < collisionDistance)) {
+    //         score--;
+    //         spriteCoords.x -= tileSize;
+    //         spriteCoords.y -= tileSize;
+    //     }
+    // })
 
     wrongLetterDraw();
     correctLetterDraw();
@@ -205,12 +211,6 @@ function correctLetterGenerator() {
     correctLetterCoords.x = tempX;
     correctLetterCoords.y = tempY;
 }
-function correctLetterDraw() {
-    canvasContext.value.fillStyle = 'blue';
-    canvasContext.value.font = `bold ${fontSize} Arial`;
-    canvasContext.value.textBaseline = "top";
-    canvasContext.value.fillText(correctLetters[globalIndex], correctLetterCoords.x, correctLetterCoords.y);
-}
 
 function wrongLetterGenerator() {
     for (let i = 0; i < wrongLettersCoords.length; i++) {
@@ -227,14 +227,52 @@ function wrongLetterGenerator() {
     }
 }
 
+//Drawing functions
+function drawBackground() {
+    canvasContext.value.fillStyle = 'green';
+    canvasContext.value.fillRect(0, 0, cols * tileSize, rows * tileSize);
+    //canvasContext.value.drawImage(bgImage.value, 0, 0, 300, 500);
+}
+function drawSprite() {
+    canvasContext.value.fillStyle = 'red';
+    canvasContext.value.fillRect(spriteCoords.x, spriteCoords.y, tileSize, tileSize);
+    canvasContext.value.fillStyle = 'blue';
+    canvasContext.value.fillRect(spriteCoords.x + (tileSize / 2) - 5, spriteCoords.y + (tileSize / 2) - 5, 10, 10);
+}
+function drawWord() {
+    canvasContext.value.fillStyle = 'black';
+    canvasContext.value.font = `${largeFontSize} Comic Sans MS`
+    const wordPadding = 7;
+    canvasContext.value.textBaseline = "top"; //note this is different from the default 'alphabetic' baseline.
+    canvasContext.value.fillText(correctLetters, (cols - 6) * tileSize - wordPadding, wordPadding);
+    canvasContext.value.fillStyle = 'red';
+    canvasContext.value.fillText(correctLetters.slice(0, globalIndex), (cols - 5) * tileSize - wordPadding, wordPadding);
+}
+function drawScore() {
+    canvasContext.value.fillStyle = 'black';
+    canvasContext.value.font = `${fontSize} Arial`
+    const scorePadding = 7;
+    canvasContext.value.textBaseline = "bottom"; //note this is different from the default 'alphabetic' baseline.
+    canvasContext.value.fillText('Score: ' + score, scorePadding, (rows * tileSize) - scorePadding);
+}
+function drawLevel() {
+    canvasContext.value.fillStyle = 'black';
+    canvasContext.value.font = `${fontSize} Arial`
+    const levelPadding = 7;
+    canvasContext.value.textBaseline = "bottom"; //note this is different from the default 'alphabetic' baseline.
+    canvasContext.value.fillText('Level: ' + level, ((cols - 3) * tileSize - levelPadding), (rows * tileSize) - levelPadding);
+}
+function correctLetterDraw() {
+    canvasContext.value.fillStyle = 'blue';
+    canvasContext.value.font = `bold ${fontSize} Arial`;
+    canvasContext.value.textBaseline = "top";
+    canvasContext.value.fillText(correctLetters[globalIndex], correctLetterCoords.x, correctLetterCoords.y);
 
-// for (let i = 0; i < wrongLettersCoords.length; i++) {
-//     // The minus brings them in from the edge.
-//     wrongLettersCoords[i].x = (randomInteger(1, (cols - 1)) * tileSize);
-//     wrongLettersCoords[i].y = (randomInteger(1, (rows - 2)) * tileSize);
-//}
-
-
+    canvasContext.value.fillStyle = 'yellow';
+    canvasContext.value.font = `bold 10px Arial`;
+    canvasContext.value.textBaseline = "top";
+    canvasContext.value.fillText(correctLetters[globalIndex], correctLetterCoords.x, correctLetterCoords.y);
+}
 function wrongLetterDraw() {
     canvasContext.value.fillStyle = 'orange';
     canvasContext.value.font = `bold ${fontSize} Arial`
@@ -244,25 +282,21 @@ function wrongLetterDraw() {
     }
 }
 
-function Left() {
+function left() {
     isMoving = true
     currentDirection = direction.left
-    //animationLoop();
 }
-function Right() {
+function right() {
     isMoving = true
     currentDirection = direction.right
-    //animationLoop();
 }
-function Up() {
+function up() {
     isMoving = true
     currentDirection = direction.up
-    //animationLoop();
 }
-function Down() {
+function down() {
     isMoving = true
     currentDirection = direction.down
-    //animationLoop();
 }
 
 function stopMoving() {
