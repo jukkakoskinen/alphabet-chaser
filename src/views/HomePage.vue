@@ -3,7 +3,7 @@
     <ion-content :fullscreen="true">
       <div id="container">
         <div>
-          <strong>Alphabet Chaser</strong>
+          <strong>Sound Tuition's Alphabet Chaser</strong>
         </div>
         <div>
           <main-canvas></main-canvas>
