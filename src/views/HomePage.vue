@@ -2,11 +2,15 @@
   <ion-page>
     <ion-content :fullscreen="true">
       <div id="container">
-        <div>
-          <strong>Sound Tuition's Alphabet Chaser</strong>
+        <div id="header">
+          <strong>Sound Tuition's<br>Alphabet Chaser</strong>
+          <ion-button @click="toggleSettings()">
+            <ion-icon :icon="Cog"></ion-icon>
+          </ion-button>
         </div>
-        <div>
-          <main-canvas></main-canvas>
+        <div id="components">
+          <main-canvas v-if="!showSettings"></main-canvas>
+          <settings v-else></settings>
         </div>
       </div>
     </ion-content>
@@ -14,8 +18,18 @@
 </template>
 
 <script setup lang="ts">
-import { IonContent, IonPage } from '@ionic/vue';
+import { ref } from 'vue';
+import { IonContent, IonPage, IonIcon, IonButton } from '@ionic/vue';
+import { settingsSharp as Cog } from 'ionicons/icons';
 import mainCanvas from '@/components/MainCanvas.vue';
+import settings from '@/components/Settings.vue';
+
+let showSettings = ref(false);
+
+function toggleSettings() {
+  showSettings.value = !showSettings.value;
+  console.log(showSettings);
+}
 </script>
 
 <style scoped>
@@ -29,20 +43,22 @@ import mainCanvas from '@/components/MainCanvas.vue';
 }
 
 #container strong {
+  float: left;
   font-size: 20px;
   line-height: 26px;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+#header {
+  display: inline-block;
 }
 
-#container a {
-  text-decoration: none;
+ion-button {
+  float: right;
+  margin-left: 10px;
+}
+
+#components {
+  height: 700px;
+
 }
 </style>
