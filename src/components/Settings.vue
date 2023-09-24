@@ -1,13 +1,13 @@
 <template>
     <div id="divMainSettings">
         <div id="divTopSettings">
-            <ion-input @focusout="calculateLetters" placeholder="hello" :clear-input="true"
-                label="Please Enter Words: "></ion-input>
-        </div>
-        <div id="divMiddleSettings">
-            <ion-item v-for="word in words">
+            <ion-item class="ion-text-center" v-for="(word, index) in words" :key="index">
                 <ion-label>{{ word }}</ion-label>
             </ion-item>
+        </div>
+        <div id="divMiddleSettings">
+            <ion-input @focusout="calculateLetters" type="text" :clear-input="true"
+            label="Enter Your Own Words or Sentences" label-placement="floating" fill="outline"></ion-input>
         </div>
     </div>
 </template>
@@ -15,31 +15,32 @@
 <script setup>
 import { App } from '@capacitor/app';
 import { IonButton, IonInput, IonItem, IonLabel, useBackButton, useIonRouter } from '@ionic/vue';
-import { ref, onMounted } from 'vue';
+import { contractOutline } from 'ionicons/icons';
+import { ref, reactive, onMounted, } from 'vue';
+
+const emit = defineEmits(['backButton']);
 
 // Back button to exit the app.
 const ionRouter = useIonRouter();
 useBackButton(-1, () => {
-    if (!ionRouter.canGoBack()) {
-        App.exitApp();
-    }
+    emit('backButton');
 });
 
 
 onMounted(() => {
-
 });
 
-let words = ['hi', 'bye', 'hot', 'cold']
-
+let wordToLearn = ref('test');
+let words = reactive(['hi', 'bye', 'hot', 'cold', 'I am', 'eat', 'drink']);
+let correctLetters = '';
+let wrongLetters = '';
 
 function calculateLetters(event) {
     //TODO fix this. what is the event target valiue?
-    let wordToLearn = undefined;
     console.log(event)
     console.log(event.target.value)
     if (event.target.value === '') {
-        wordToLearn = 'hello'
+        wordToLearn = 'hi'
     }
     wordToLearn = event.target.value;
     let alphabet = "abcdefghijklmnopqrstuvwxyz";
@@ -53,16 +54,16 @@ function calculateLetters(event) {
 
     wrongLetters = alphabet.split('').join('');
     //reset so that the word to find starts from the beginning.
-    globalIndex = 0;
+    // globalIndex = 0;
+    words.push(wordToLearn);
+    console.log(wordToLearn);
 }
-
-
-
-
 
 </script>
 
-<style>
+<style scoped>
+
+
 #divMainSettings {
     display: grid;
 }
@@ -79,7 +80,7 @@ function calculateLetters(event) {
     margin-left: auto;
     margin-right: auto;
     height: 10%;
-    width: 35%;
+    width: 85%;
     /* border: 2px solid green; */
 }
 </style>

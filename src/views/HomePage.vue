@@ -10,7 +10,7 @@
         </div>
         <div id="components">
           <main-canvas v-if="!showSettings"></main-canvas>
-          <settings v-else></settings>
+          <settings v-else @back-button="handleBackButton"></settings>
         </div>
       </div>
     </ion-content>
@@ -26,9 +26,12 @@ import settings from '@/components/Settings.vue';
 
 let showSettings = ref(false);
 
+function handleBackButton(){
+  toggleSettings();
+}
+
 function toggleSettings() {
   showSettings.value = !showSettings.value;
-  console.log(showSettings);
 }
 </script>
 
