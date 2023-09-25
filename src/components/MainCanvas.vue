@@ -120,7 +120,7 @@ function animationLoop() {
     requestAnimationFrame(animationLoop)
 }
 
-function movement(){
+function movement() {
     if (isMoving) {
         if (currentDirection === direction.up && spriteCoords.y > tileSize) {
             spriteCoords.y -= speed;
@@ -137,8 +137,8 @@ function movement(){
     }
 }
 
-function collisonWithCorrectLetter(){
-     // Detect sprite hits the correct letter.
+function collisonWithCorrectLetter() {
+    // Detect sprite hits the correct letter.
     // const collisionDistance = 0;
     if ((spriteCoords.row === correctLetterCoords.row) && (spriteCoords.col === correctLetterCoords.col)) {
         stopMoving();
@@ -150,10 +150,13 @@ function collisonWithCorrectLetter(){
         } else {
             globalIndex = 0;
         }
-        if (score === 3) {
-            level = 2;
-            globalIndex = 0;
-            colorCorrectLetters = 'orange';
+        if (score < 3) {
+            // Wait until the current word has been spelt before
+            // changing the level.
+            if (globalIndex === 0) {
+                level = 2;
+                colorCorrectLetters = 'orange';
+            }
         }
         // create new coords for wrong letters
         wrongLetterGenerator();
@@ -162,9 +165,9 @@ function collisonWithCorrectLetter(){
     }
 }
 
-function collisonWithWrongLetter(){
-     // WrongLetter collisions.
-     if (wrongLettersCoords.some((wrongLetter) => wrongLetter.row === spriteCoords.row && wrongLetter.col === spriteCoords.col)) {
+function collisonWithWrongLetter() {
+    // WrongLetter collisions.
+    if (wrongLettersCoords.some((wrongLetter) => wrongLetter.row === spriteCoords.row && wrongLetter.col === spriteCoords.col)) {
         score--;
         switch (currentDirection) {
             case direction.left:
