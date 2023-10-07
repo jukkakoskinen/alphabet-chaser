@@ -41,8 +41,8 @@ const canvasContext = ref(null)
 // Indexes
 let globalIndex = 0;
 // Letters
-let correctLetters = 'hello';
-let wrongLetters = 'abcdfgijkmnpqrstuvwxyz';
+let correctLetters = 'hi';
+let wrongLetters = 'abcdefgjklmnpqrstuvwxyz';
 let colorCorrectLetters = 'blue';
 let colorWrongLetters = 'orange';
 // Board size
@@ -81,9 +81,10 @@ let correctLetterCoords = {
     get row() { return Math.floor((this.x + (tileSize / 2)) / tileSize) },
     get col() { return Math.floor((this.y + (tileSize / 2)) / tileSize) }
 };
-let wrongLettersCoords = [
-    { x: tileSize, y: tileSize, get row() { return Math.floor(this.x / tileSize) }, get col() { return Math.floor(this.y / tileSize) } },
-];
+// WrongLettersPositions structure.
+// { x: null, y: null, get row() { return this.x / tileSize }, get col() { return this.y / tileSize } },
+let wrongLettersPositions = [];
+let amountOfWrongLetters = 10;
 
 onMounted(() => {
     mainCanvas.value = document.getElementById('mainCanvas');
@@ -92,9 +93,7 @@ onMounted(() => {
     canvasContext.value = mainCanvas.value.getContext('2d');
 
     // Generate the initial wrong letters
-    for (let i = 0; i < 11; i++) {
-        wrongLettersCoords.push({ x: tileSize * i, y: tileSize * i, get row() { return Math.floor(this.x / tileSize) }, get col() { return Math.floor(this.y / tileSize) } });
-    }
+    initWrongLettersPositions(amountOfWrongLetters);
 
     wrongLetterGenerator();
     correctLetterGenerator();
@@ -143,14 +142,17 @@ function collisonWithCorrectLetter() {
     if ((spriteCoords.row === correctLetterCoords.row) && (spriteCoords.col === correctLetterCoords.col)) {
         stopMoving();
         score++;
+        //console.log(globalIndex <= (correctLetters.length - 2))
         // TODO fix this loop bug, it shouldn't need minus 1.
         // I think it is just the order in which it's called.
-        if (globalIndex < correctLetters.length - 1) {
+        if (globalIndex <= (correctLetters.length - 2)) {
+            //console.log(globalIndex)
             globalIndex++;
+            //console.log(correctLetters.length)
         } else {
             globalIndex = 0;
         }
-        if (score < 3) {
+        if (score > 3) {
             // Wait until the current word has been spelt before
             // changing the level.
             if (globalIndex === 0) {
@@ -165,32 +167,53 @@ function collisonWithCorrectLetter() {
     }
 }
 
+function initWrongLettersPositions(amountOfWrongLetters) {
+    // i starts at 1 because it is used to perform multiplications and I don't want to multiple by 0.
+    for (let i = 1; i <= amountOfWrongLetters; i++) {
+        wrongLettersPositions.push({ x: tileSize * i, y: tileSize * i, get row() { return this.x / tileSize }, get col() { return this.y / tileSize } });
+    }
+}
+
 function collisonWithWrongLetter() {
-    // WrongLetter collisions.
-    if (wrongLettersCoords.some((wrongLetter) => wrongLetter.row === spriteCoords.row && wrongLetter.col === spriteCoords.col)) {
-        score--;
-        switch (currentDirection) {
-            case direction.left:
-                spriteCoords.x += tileSize / 2;
-                break;
-            case direction.right:
-                spriteCoords.x -= tileSize / 2;
-                break;
-            case direction.up:
-                spriteCoords.y += tileSize / 2;
-                break;
-            case direction.down:
-                spriteCoords.y -= tileSize / 2;
-                break;
+    // The inner if of the some() is so that an index can be passed to the removeWrongLetter() function.
+    if (wrongLettersPositions.some((wrongLetter, index) => {
+        if (wrongLetter.row === spriteCoords.row && wrongLetter.col === spriteCoords.col) {
+            removeWrongLetter(index);
+            return true;
         }
+        return false;
+    })) {
+        score--;
+        bounceOffWrongLetter();
         stopMoving();
         //TODO check this works...
         levelDown();
     }
 }
 
+function removeWrongLetter(index) {
+    let WrongLettersPositionsSpliced = wrongLettersPositions.splice(index, 1)
+}
+
 function changeSpeed({ detail }) {
     speed = detail.value;
+}
+
+function bounceOffWrongLetter() {
+    switch (currentDirection) {
+        case direction.left:
+            spriteCoords.x += tileSize / 2;
+            break;
+        case direction.right:
+            spriteCoords.x -= tileSize / 2;
+            break;
+        case direction.up:
+            spriteCoords.y += tileSize / 2;
+            break;
+        case direction.down:
+            spriteCoords.y -= tileSize / 2;
+            break;
+    }
 }
 
 function randomInteger(min, max) {
@@ -200,30 +223,86 @@ function randomInteger(min, max) {
 function correctLetterGenerator() {
     // Note this always needs calling after the wrong letter have been generated.
     // Otherwise the comparison is pointless.
-    let tempX = (randomInteger(2, (cols - 1)) * tileSize);
-    let tempY = (randomInteger(2, (rows - 2)) * tileSize);
-    while (wrongLettersCoords.some(element => element.x === tempX && element.y === tempY)) {
-        tempX = (randomInteger(2, (cols - 1)) * tileSize);
+    const startingCol = 0;
+    //Rows starts at 2 to give space at the top of the canvas for the main word.
+    const startingRow = 2;
+    let tempX = (randomInteger(startingCol, (cols - 1)) * tileSize);
+    let tempY = (randomInteger(startingRow, (rows - 2)) * tileSize);
+
+    // TODO refactor the two while loops into one with better logic.
+    // should I use the col and row getters instead of the pixel positions?
+    while (wrongLettersPositions.some(element => element.x === tempX && element.y === tempY)) {
+        tempX = (randomInteger(startingCol, (cols - 1)) * tileSize);
+        tempY = (randomInteger(startingRow, (rows - 2)) * tileSize);
+    }
+
+    while (spriteCoords.x === tempX && spriteCoords.y === tempY) {
+        tempX = (randomInteger(0, (cols - 1)) * tileSize);
         tempY = (randomInteger(2, (rows - 2)) * tileSize);
     }
+
     correctLetterCoords.x = tempX;
     correctLetterCoords.y = tempY;
 }
 
 function wrongLetterGenerator() {
-    for (let i = 0; i < wrongLettersCoords.length; i++) {
-        let tempX = (randomInteger(2, (cols - 1)) * tileSize);
-        let tempY = (randomInteger(2, (rows - 2)) * tileSize);
-        while (wrongLettersCoords.some(element => element.x === tempX && element.y === tempY)) {
-            tempX = (randomInteger(2, (cols - 1)) * tileSize);
-            tempY = (randomInteger(2, (rows - 2)) * tileSize);
-        }
-        if (i < 10) {
-            wrongLettersCoords[i].x = tempX;
-            wrongLettersCoords[i].y = tempY;
+    const uniqueCoordinates = [];
+    const coordinateSet = new Set();
+
+    // can I do something like this to prevent a wrong letter appearing ontop of the sprite?
+    // const coordinateString = JSON.stringify(spriteCoords);
+    // coordinateSet.add(coordinateString);
+
+    let tempX = 0;
+    let tempY = 0;
+
+    const startingRow = 2;
+    const endingingRow = rows - 2;
+    const startingCol = 0;
+    const endingCol = cols - 1;
+
+    while (uniqueCoordinates.length <= amountOfWrongLetters) {
+        tempX = (randomInteger(startingCol, endingCol) * tileSize);
+        tempY = (randomInteger(startingRow, endingingRow) * tileSize);
+
+        const coordinate = { x: tempX, y: tempY, get row() { return this.x / tileSize }, get col() { return this.y / tileSize } }; // Create a coordinate object
+
+        const coordinateString = JSON.stringify(coordinate); // Convert to a string for Set comparison
+
+        if (!coordinateSet.has(coordinateString)) {
+            // If it's not already in the set, add it to the array and the set
+            uniqueCoordinates.push(coordinate);
+            coordinateSet.add(coordinateString);
         }
     }
+    wrongLettersPositions = uniqueCoordinates;
 }
+
+
+//     for (const coord of wrongLettersPositions) {
+//         // Generate random rows and cols
+//         tempRow = randomInteger(2, (rows - 2));
+//         tempCol = randomInteger(0, (cols - 1));
+//         console.log(tempRow, tempCol)
+//         while (
+//             // Check each tempRow and Twmp Col against each other, the sprite, and the correct letters.
+//             (tempCol === coord.col && tempRow === coord.row)
+//             && (tempCol === correctLetterCoords.col && tempRow === correctLetterCoords.row)
+//             && (tempCol === spriteCoords.col && tempRow === spriteCoords.row)
+//         ) {
+//             tempRow = randomInteger(2, (rows - 2));
+//             tempCol = randomInteger(0, (cols - 1));
+//         }
+//         if (i < 10) {
+//             wrongLettersPositions[i].x = tempX * tileSize;
+//             wrongLettersPositions[i].y = tempY * tileSize;
+//             i++;
+//             console.log(wrongLettersPositions.x, wrongLettersPositions.y)
+//         }
+//     }
+// }
+
+
 
 //Drawing functions
 function drawBackground() {
@@ -283,13 +362,12 @@ function drawWrongLetter() {
     canvasContext.value.strokeStyle = colorWrongLetters;
     canvasContext.value.font = `bold ${fontSize.medium - 4} monospace`
     canvasContext.value.textBaseline = "top";
-    for (let i = 0; i <= 10 - 1; i++) {
-        canvasContext.value.fillText(wrongLetters[i], wrongLettersCoords[i].x + alignment, wrongLettersCoords[i].y);
+    wrongLettersPositions.forEach((wrongLetterPosition, index) => {
+        canvasContext.value.fillText(wrongLetters[index], wrongLetterPosition.x + alignment, wrongLetterPosition.y);
         canvasContext.value.beginPath();
-        canvasContext.value.roundRect(wrongLettersCoords[i].x, wrongLettersCoords[i].y, tileSize - 4, tileSize - 4, radii);
+        canvasContext.value.roundRect(wrongLetterPosition.x, wrongLetterPosition.y, tileSize - 4, tileSize - 4, radii);
         canvasContext.value.stroke();
-    }
-
+    })
 }
 
 function left() {
