@@ -1,18 +1,7 @@
 <template>
     <div id="divMain">
-        <div id="divTop">
-            <ion-range @ionChange="changeSpeed" :pin="true" :ticks="true" :snaps="true" :min="1" :max="8"
-                label="Speed! "></ion-range>
-        </div>
         <div id="divCanvas">
             <canvas id="mainCanvas"></canvas>
-        </div>
-        <div id="divButtons">
-            <ion-button @mousedown="left" @mouseup="stopMoving" @touchstart="left" @touchend="stopMoving">Left</ion-button>
-            <ion-button @mousedown="right" @mouseup="stopMoving" @touchstart="right"
-                @touchend="stopMoving">Right</ion-button>
-            <ion-button @mousedown="up" @mouseup="stopMoving" @touchstart="up" @touchend="stopMoving">Up</ion-button>
-            <ion-button @mousedown="down" @mouseup="stopMoving" @touchstart="down" @touchend="stopMoving">Down</ion-button>
         </div>
     </div>
 </template>
@@ -21,6 +10,11 @@
 import { App } from '@capacitor/app';
 import { IonButton, IonInput, IonRange, useBackButton, useIonRouter } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
+
+import { useMovement } from '@/composables/useMovement';
+const { left, right, up, down, stopMoving, movement } = useMovement();
+
+import { useMainStore } from '@/stores/mainStore';
 
 // Back button to exit the app.
 const ionRouter = useIonRouter();
@@ -33,6 +27,11 @@ useBackButton(-1, () => {
 //TODO 
 // refactor loops using cleaner loops foreach for in for of etc
 // refactor using spread ... for array assignments. 
+
+
+// Store
+const mainStore = useMainStore();
+
 
 // Canvas
 const mainCanvas = ref(null);
@@ -54,16 +53,7 @@ const fontSize = {
     medium: tileSize + 'px',
     small: tileSize - 10 + 'px',
 }
-// Directions and movement
-let speed = 1;
-let isMoving = true;
-let currentDirection = undefined;
-let direction = {
-    left: 0,
-    right: 1,
-    up: 2,
-    down: 3,
-}
+
 // Game State
 let score = 0;
 let level = 1;
@@ -86,7 +76,11 @@ let correctLetterCoords = {
 let wrongLettersPositions = [];
 let amountOfWrongLetters = 10;
 
+const props = defineProps(['spriteSpeed']);
+
 onMounted(() => {
+    console.log('spriteSpeed')
+    console.log(props.spriteSpeed)
     mainCanvas.value = document.getElementById('mainCanvas');
     mainCanvas.value.width = cols * tileSize;
     mainCanvas.value.height = rows * tileSize;
@@ -102,10 +96,10 @@ onMounted(() => {
 });
 
 function animationLoop() {
-    movement()
+    movement(spriteCoords, mainStore.speed, tileSize, rows, cols)
 
     drawBackground();
-    drawWord();
+    //drawWord();
     drawScore();
     drawLevel();
     drawSprite();
@@ -119,22 +113,7 @@ function animationLoop() {
     requestAnimationFrame(animationLoop)
 }
 
-function movement() {
-    if (isMoving) {
-        if (currentDirection === direction.up && spriteCoords.y > tileSize) {
-            spriteCoords.y -= speed;
-        }
-        else if (currentDirection === direction.down && spriteCoords.y < tileSize * (rows - 2)) {
-            spriteCoords.y += speed;
-        }
-        else if (currentDirection === direction.left && spriteCoords.x > 0) {
-            spriteCoords.x -= speed;
-        }
-        else if (currentDirection === direction.right && spriteCoords.x < tileSize * (cols - 1)) {
-            spriteCoords.x += speed;
-        }
-    }
-}
+
 
 function collisonWithCorrectLetter() {
     // Detect sprite hits the correct letter.
@@ -195,22 +174,20 @@ function removeWrongLetter(index) {
     let WrongLettersPositionsSpliced = wrongLettersPositions.splice(index, 1)
 }
 
-function changeSpeed({ detail }) {
-    speed = detail.value;
-}
+
 
 function bounceOffWrongLetter() {
-    switch (currentDirection) {
-        case direction.left:
+    switch (mainStore.currentDirection) {
+        case mainStore.direction.left:
             spriteCoords.x += tileSize / 2;
             break;
-        case direction.right:
+        case mainStore.direction.right:
             spriteCoords.x -= tileSize / 2;
             break;
-        case direction.up:
+        case mainStore.direction.up:
             spriteCoords.y += tileSize / 2;
             break;
-        case direction.down:
+        case mainStore.direction.down:
             spriteCoords.y -= tileSize / 2;
             break;
     }
@@ -320,15 +297,6 @@ function drawSprite() {
     canvasContext.value.fillStyle = 'blue';
     canvasContext.value.fillRect(spriteCoords.x + (tileSize / 2) - 5, spriteCoords.y + (tileSize / 2) - 5, 10, 10);
 }
-function drawWord() {
-    canvasContext.value.fillStyle = 'black';
-    canvasContext.value.font = `${fontSize.medium} Comic Sans MS`
-    const wordPadding = 3;
-    canvasContext.value.textBaseline = "top"; //note this is different from the default 'alphabetic' baseline.
-    canvasContext.value.fillText(correctLetters, (cols - 6) * tileSize - wordPadding, wordPadding);
-    canvasContext.value.fillStyle = 'red';
-    canvasContext.value.fillText(correctLetters.slice(0, globalIndex), (cols - 6) * tileSize - wordPadding, wordPadding);
-}
 function drawScore() {
     canvasContext.value.fillStyle = 'black';
     canvasContext.value.font = `${fontSize.small} Arial`
@@ -370,27 +338,6 @@ function drawWrongLetter() {
     })
 }
 
-function left() {
-    isMoving = true
-    currentDirection = direction.left
-}
-function right() {
-    isMoving = true
-    currentDirection = direction.right
-}
-function up() {
-    isMoving = true
-    currentDirection = direction.up
-}
-function down() {
-    isMoving = true
-    currentDirection = direction.down
-}
-
-function stopMoving() {
-    isMoving = false;
-}
-
 function levelDown() {
     if (score < 3) {
         level = 1;
@@ -401,7 +348,7 @@ function levelDown() {
 
 </script>
 
-<style>
+<style scoped>
 #divMain {
     display: grid;
 }

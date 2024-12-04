@@ -13,7 +13,6 @@
 </template>
 
 <script setup>
-import { App } from '@capacitor/app';
 import { IonButton, IonInput, IonItem, IonLabel, useBackButton, useIonRouter } from '@ionic/vue';
 import { contractOutline } from 'ionicons/icons';
 import { ref, reactive, onMounted, } from 'vue';
