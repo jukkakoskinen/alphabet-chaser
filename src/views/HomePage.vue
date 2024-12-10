@@ -4,19 +4,25 @@
       <div id="container">
         <div id="header">
           <strong>Sound Tuition's<br>Alphabet Chaser</strong>
-          <ion-button @click="toggleSettings">
+          <ion-button v-show="!mainStore.showLogin" @click="toggleSettings">
             <ion-icon :icon="Cog"></ion-icon>
+          </ion-button>
+          <ion-button v-show="!mainStore.showSettings && !mainStore.showLogin" @click="openLogin">
+            <ion-icon :icon="LogIn" style="font-size: 20px;"></ion-icon>
           </ion-button>
         </div>
         <div id="components">
-          <div v-if="!mainStore.showSettings" id="game">
+          <div v-if="!mainStore.showSettings && !mainStore.showLogin" id="game">
             <speed-controller></speed-controller>
             <score-and-level></score-and-level>
             <main-word></main-word>
             <main-canvas></main-canvas>
             <controls></controls>
           </div>
-          <div v-else id="settings">
+          <div v-else-if="mainStore.showLogin" id="login">
+            <LoginForm />
+          </div>
+          <div v-else-if="mainStore.showSettings" id="settings">
             <settings  @back-button="handleBackButton"></settings>
           </div>
         </div>
@@ -29,7 +35,7 @@
 import { ref } from 'vue';
 
 import { IonContent, IonPage, IonIcon, IonButton } from '@ionic/vue';
-import { settingsSharp as Cog } from 'ionicons/icons';
+import { settingsSharp as Cog, logInSharp as LogIn } from 'ionicons/icons';
 
 import speedController from '@/components/SpeedController.vue';
 import scoreAndLevel from '@/components/ScoreAndLevel.vue';
@@ -37,6 +43,7 @@ import mainWord from '@/components/MainWord.vue';
 import mainCanvas from '@/components/MainCanvas.vue';
 import settings from '@/components/Settings.vue';
 import controls from '@/components/Controls.vue';
+import LoginForm from '@/components/LoginForm.vue';
 
 import { useMainStore } from '@/stores/mainStore';
 
@@ -50,6 +57,9 @@ function toggleSettings() {
   mainStore.showSettings = !mainStore.showSettings;
 }
 
+function openLogin() {
+  mainStore.showLogin = true;
+}
 
 </script>
 

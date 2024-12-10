@@ -15,13 +15,14 @@ export const useMainStore = defineStore('mainStore', () => {
 
     const speed = ref(1)
     const showSettings = ref(false);
+    const showLogin = ref(false);
 
     const doubleCount = computed(() => count.value * 2)
     function increment() {
         count.value++
     }
 
-    return { isMoving, currentDirection, direction, speed, showSettings, doubleCount, increment }
+    return { isMoving, currentDirection, direction, speed, showSettings, showLogin, doubleCount, increment }
 
 })
 
