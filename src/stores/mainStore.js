@@ -22,7 +22,7 @@ export const useMainStore = defineStore('mainStore', () => {
         count.value++
     }
 
-    return { isMoving, currentDirection, direction, speed, showSettings, showLogin, doubleCount, increment }
+    return {  currentDirection, direction, doubleCount, showLogin, showSettings, speed, increment, isMoving, }
 
 })
 

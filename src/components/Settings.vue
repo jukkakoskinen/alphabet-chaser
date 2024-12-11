@@ -13,8 +13,7 @@
 </template>
 
 <script setup>
-import { IonButton, IonInput, IonItem, IonLabel, useBackButton, useIonRouter } from '@ionic/vue';
-import { contractOutline } from 'ionicons/icons';
+import { IonButton, IonIcon, IonInput, IonItem, IonLabel, useBackButton, useIonRouter } from '@ionic/vue';
 import { ref, reactive, onMounted, } from 'vue';
 
 const emit = defineEmits(['backButton']);
