@@ -1,5 +1,5 @@
 <template>
-    <div id="divMain">
+    <div id="divMainMainWord">
         <ion-label>
             <h1>{{ mainWord }}</h1>
         </ion-label>
@@ -10,32 +10,38 @@
 import { IonLabel } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 
-const mainWord = 'hi';
-
 onMounted(() => {
 });
 
+defineProps({
+    mainWord: {type: String, default: 'Default Word'}
+})
+
+// TODO implement the logic for calculating the correct and wrong letter.
+// does this already exist on the main convas and need moving into
+// this component?
+// 
+// function calculateLetters(event) {
+//     wordRelated.currentWordToLearn = event.detail.value === '' ? 'hi' : event.detail.value;
+    
+//     let alphabet = "abcdefghijklmnopqrstuvwxyz";
+//     let tempAlphabet = "";
+//     wordRelated.correctLetters = wordRelated.currentWordToLearn.split('').join('');
+
+//     for (let i = 0; i < wordRelated.correctLetters.length; i++) {
+//         tempAlphabet = alphabet.replace(wordRelated.correctLetters[i], '');
+//         alphabet = tempAlphabet;
+//     }
+
+//     wordRelated.wrongLetters = alphabet.split('').join('');
+
+//     wordRelated.mainListOfWords.push(wordRelated.currentWordToLearn);
+// }
 
 </script>
 
 <style scoped>
-#divMain {
+#divMainMainWord {
     display: grid;
-}
-
-#divTop {
-    margin-left: auto;
-    margin-right: auto;
-    height: 10%;
-    width: 80%;
-    /* border: 2px solid green; */
-}
-
-ion-range {
-    padding: 0px;
-}
-
-#mainCanvas {
-    border: 2px solid gray;
 }
 </style>

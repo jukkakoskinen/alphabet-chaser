@@ -14,9 +14,9 @@
         <div id="components">
           <div v-if="!mainStore.showSettings && !mainStore.showLogin" id="game">
             <speed-controller></speed-controller>
-            <score-and-level></score-and-level>
             <main-word></main-word>
             <main-canvas></main-canvas>
+            <score-and-level></score-and-level>
             <controls></controls>
           </div>
           <div v-else-if="mainStore.showLogin" id="login">

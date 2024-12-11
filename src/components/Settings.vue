@@ -1,12 +1,12 @@
 <template>
     <div id="divMainSettings">
         <div id="divTopSettings">
-            <ion-item class="ion-text-center" v-for="(word, index) in words" :key="index">
+            <ion-item class="ion-text-center" v-for="(word, index) in wordRelated.mainListOfWords" :key="index">
                 <ion-label>{{ word }}</ion-label>
             </ion-item>
         </div>
         <div id="divMiddleSettings">
-            <ion-input @focusout="calculateLetters" type="text" :clear-input="true"
+            <ion-input @keydown.enter="saveWord" @focusout="saveWord" type="text" :clear-input="true"
             label="Enter Your Own Words or Sentences" label-placement="floating" fill="outline"></ion-input>
         </div>
     </div>
@@ -15,6 +15,7 @@
 <script setup>
 import { IonButton, IonIcon, IonInput, IonItem, IonLabel, useBackButton, useIonRouter } from '@ionic/vue';
 import { ref, reactive, onMounted, } from 'vue';
+import { useMainStore } from '@/stores/mainStore';
 
 const emit = defineEmits(['backButton']);
 
@@ -24,37 +25,13 @@ useBackButton(-1, () => {
     emit('backButton');
 });
 
+const mainStore = useMainStore();
+const wordRelated = mainStore.wordRelated
 
-onMounted(() => {
-});
-
-let wordToLearn = ref('test');
-let words = reactive(['hi', 'bye', 'hot', 'cold', 'I am', 'eat', 'drink']);
-let correctLetters = '';
-let wrongLetters = '';
-
-function calculateLetters(event) {
-    //TODO fix this. what is the event target valiue?
-    console.log(event)
-    console.log(event.target.value)
-    if (event.target.value === '') {
-        wordToLearn = 'hi'
-    }
-    wordToLearn = event.target.value;
-    let alphabet = "abcdefghijklmnopqrstuvwxyz";
-    let tempAlphabet = "";
-    correctLetters = wordToLearn.split('').join('');
-
-    for (let i = 0; i < correctLetters.length; i++) {
-        tempAlphabet = alphabet.replace(correctLetters[i], '');
-        alphabet = tempAlphabet;
-    }
-
-    wrongLetters = alphabet.split('').join('');
-    //reset so that the word to find starts from the beginning.
-    // globalIndex = 0;
-    words.push(wordToLearn);
-    console.log(wordToLearn);
+function saveWord(event){
+    if(event.target.value.trim().length === 0) return;
+    wordRelated.mainListOfWords.push(event.target.value) // TODO does this need sanatising?
+    event.target.value = ''; // Clear input field
 }
 
 </script>
