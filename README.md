@@ -2,6 +2,10 @@
 
 Alphabet Chaser is a fun and interactive game designed to help children improve their letter recognition and spelling. Built with JavaScript, TypeScript, VueJs, Node.js, and Ionic, this game is perfect for children or adults learning a second language and the project is **extremely friendly to first-time contributors and seasoned pros alike.**
 
+## Availability
+
+The **app will be deployed** and readily available for **contributers to see there work in real life!**
+
 ## Features
 
 - **Engaging Gameplay**: Chase letters and improve your skills while having fun.
@@ -72,7 +76,7 @@ We welcome contributions from the community! To get started:
 
 ## License
 
-This project is licensed under the SIC License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
