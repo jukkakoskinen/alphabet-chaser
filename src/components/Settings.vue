@@ -1,13 +1,25 @@
 <template>
     <div id="divMainSettings">
         <div id="divTopSettings">
-            <ion-item class="ion-text-center" v-for="(word, index) in wordRelated.mainListOfWords" :key="index">
+            <ion-item
+                class="ion-text-center custom-background"
+                v-for="(word, index) in wordRelated.mainListOfWords"
+                :key="index"
+            >
                 <ion-label>{{ word }}</ion-label>
             </ion-item>
         </div>
         <div id="divMiddleSettings">
-            <ion-input @keydown.enter="saveWord" @focusout="saveWord" type="text" :clear-input="true"
-            label="Enter Your Own Words or Sentences" label-placement="floating" fill="outline"></ion-input>
+            <ion-input
+                class="custom-margin-top"
+                @keydown.enter="saveWord"
+                @focusout="saveWord"
+                type="text"
+                :clear-input="true"
+                label="Enter your own word(s)"
+                label-placement="floating"
+                fill="outline"
+            ></ion-input>
         </div>
     </div>
 </template>
@@ -44,6 +56,7 @@ function saveWord(event){
 }
 
 #divTopSettings {
+    margin-top: 20px;
     margin-left: auto;
     margin-right: auto;
     height: 10%;
@@ -57,5 +70,13 @@ function saveWord(event){
     height: 10%;
     width: 85%;
     /* border: 2px solid green; */
+}
+
+.custom-margin-top {
+    margin-top: 20px;
+}
+
+.custom-background {
+    --background: transparent;
 }
 </style>
