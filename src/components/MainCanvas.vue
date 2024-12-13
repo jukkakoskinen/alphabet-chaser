@@ -9,7 +9,7 @@
 <script setup>
 import { App } from '@capacitor/app';
 import { IonButton, IonInput, IonRange, useBackButton, useIonRouter } from '@ionic/vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 import { useMovement } from '@/composables/useMovement';
 const { left, right, up, down, stopMoving, movement } = useMovement();
@@ -78,6 +78,8 @@ let amountOfWrongLetters = 10;
 
 const props = defineProps(['spriteSpeed']);
 
+let animationFrameRequestId = null;
+
 onMounted(() => {
     console.log('spriteSpeed')
     console.log(props.spriteSpeed)
@@ -95,6 +97,10 @@ onMounted(() => {
     animationLoop();
 });
 
+onBeforeUnmount(() => {
+    cancelAnimationFrame(animationFrameRequestId);
+});
+
 function animationLoop() {
     movement(spriteCoords, mainStore.speed, tileSize, rows, cols)
 
@@ -110,7 +116,7 @@ function animationLoop() {
     drawWrongLetter();
     drawCorrectLetter();
 
-    requestAnimationFrame(animationLoop)
+    animationFrameRequestId = requestAnimationFrame(animationLoop);
 }
 
 
