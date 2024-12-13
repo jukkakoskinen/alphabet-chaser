@@ -40,8 +40,6 @@ const canvasContext = ref(null)
 // Indexes
 let globalIndex = 0;
 // Letters
-let correctLetters = 'hi';
-let wrongLetters = 'abcdefgjklmnpqrstuvwxyz';
 let colorCorrectLetters = 'blue';
 let colorWrongLetters = 'orange';
 // Board size
@@ -88,9 +86,6 @@ onMounted(() => {
     mainCanvas.value.height = rows * tileSize;
     canvasContext.value = mainCanvas.value.getContext('2d');
 
-    // Generate the initial wrong letters
-    initWrongLettersPositions(amountOfWrongLetters);
-
     wrongLetterGenerator();
     correctLetterGenerator();
 
@@ -127,35 +122,16 @@ function collisonWithCorrectLetter() {
     if ((spriteCoords.row === correctLetterCoords.row) && (spriteCoords.col === correctLetterCoords.col)) {
         stopMoving();
         score++;
-        //console.log(globalIndex <= (correctLetters.length - 2))
-        // TODO fix this loop bug, it shouldn't need minus 1.
-        // I think it is just the order in which it's called.
-        if (globalIndex <= (correctLetters.length - 2)) {
-            //console.log(globalIndex)
-            globalIndex++;
-            //console.log(correctLetters.length)
-        } else {
-            globalIndex = 0;
-        }
-        if (score > 3) {
-            // Wait until the current word has been spelt before
-            // changing the level.
-            if (globalIndex === 0) {
-                level = 2;
-                colorCorrectLetters = 'orange';
-            }
-        }
-        // create new coords for wrong letters
-        wrongLetterGenerator();
-        // create new coords for correct letter
-        correctLetterGenerator();
-    }
-}
+        globalIndex++;
 
-function initWrongLettersPositions(amountOfWrongLetters) {
-    // i starts at 1 because it is used to perform multiplications and I don't want to multiple by 0.
-    for (let i = 1; i <= amountOfWrongLetters; i++) {
-        wrongLettersPositions.push({ x: tileSize * i, y: tileSize * i, get row() { return this.x / tileSize }, get col() { return this.y / tileSize } });
+        if (globalIndex === mainStore.wordRelated.currentWordToLearn.length) {
+            level++;
+            globalIndex = 0;
+            mainStore.resetWord();
+        }
+
+        wrongLetterGenerator();
+        correctLetterGenerator();
     }
 }
 
@@ -168,9 +144,9 @@ function collisonWithWrongLetter() {
         }
         return false;
     })) {
-        score--;
-        bounceOffWrongLetter();
         stopMoving();
+        bounceOffWrongLetter();
+        score--;
         //TODO check this works...
         levelDown();
     }
@@ -324,7 +300,7 @@ function drawCorrectLetter() {
     canvasContext.value.strokeStyle = colorCorrectLetters;
     canvasContext.value.font = `bold ${fontSize.medium - 4} Arial`;
     canvasContext.value.textBaseline = "top";
-    canvasContext.value.fillText(correctLetters[globalIndex], correctLetterCoords.x + alignment, correctLetterCoords.y);
+    canvasContext.value.fillText(mainStore.wordRelated.currentWordToLearn[globalIndex], correctLetterCoords.x + alignment, correctLetterCoords.y);
     canvasContext.value.beginPath();
     canvasContext.value.roundRect(correctLetterCoords.x, correctLetterCoords.y, tileSize - 4, tileSize - 4, radii);
     canvasContext.value.stroke();
@@ -337,7 +313,7 @@ function drawWrongLetter() {
     canvasContext.value.font = `bold ${fontSize.medium - 4} monospace`
     canvasContext.value.textBaseline = "top";
     wrongLettersPositions.forEach((wrongLetterPosition, index) => {
-        canvasContext.value.fillText(wrongLetters[index], wrongLetterPosition.x + alignment, wrongLetterPosition.y);
+        canvasContext.value.fillText(mainStore.wordRelated.wrongLetters[index], wrongLetterPosition.x + alignment, wrongLetterPosition.y);
         canvasContext.value.beginPath();
         canvasContext.value.roundRect(wrongLetterPosition.x, wrongLetterPosition.y, tileSize - 4, tileSize - 4, radii);
         canvasContext.value.stroke();
@@ -347,8 +323,8 @@ function drawWrongLetter() {
 function levelDown() {
     if (score < 3) {
         level = 1;
-        colorCorrectLetters = 'blue';
         globalIndex = 0;
+        mainStore.resetWord();
     }
 }
 

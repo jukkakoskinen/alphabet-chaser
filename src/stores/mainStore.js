@@ -1,4 +1,23 @@
+import { difference, shuffled, takeRandom } from '@/utils/array';
 import { defineStore } from 'pinia';
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
+const DEFAULT_WORDS = ["hi", "bye"];
+
+function createWordRelatedState(words = DEFAULT_WORDS) {
+    if (!words.length) {
+        throw new Error("expected words");
+    }
+    const randomWord = takeRandom(shuffled(words));
+    const correctLetters = randomWord.split("");
+    const wrongLetters = shuffled(difference(ALPHABET, correctLetters));
+    
+    return {
+        currentWordToLearn: randomWord,
+        mainListOfWords: [...words],
+        wrongLetters,
+    };
+}
 
 export const useMainStore = defineStore('mainStore', {
     state: () => ({
@@ -15,14 +34,13 @@ export const useMainStore = defineStore('mainStore', {
         showLogin: false,
         showSettings: false,
         speed: 1,
-        wordRelated: {
-            correctLetters: '',
-            currentWordToLearn: 'Deafault Word To Learn',
-            mainListOfWords: ['hi', 'bye'],
-            wrongLetters: '',
-        }  
+        wordRelated: createWordRelatedState()  
     }),
-    actions: {}
+    actions: {
+        resetWord() {
+            this.wordRelated = createWordRelatedState(this.wordRelated.mainListOfWords);
+        }
+    }
 })
 
 

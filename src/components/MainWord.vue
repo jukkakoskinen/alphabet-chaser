@@ -1,7 +1,7 @@
 <template>
     <div id="divMainMainWord">
         <ion-label>
-            <h1>{{ mainWord }}</h1>
+            <h1>{{ mainStore.wordRelated.currentWordToLearn }}</h1>
         </ion-label>
     </div>
 </template>
@@ -10,12 +10,9 @@
 import { IonLabel } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 
-onMounted(() => {
-});
+import { useMainStore } from '@/stores/mainStore';
 
-defineProps({
-    mainWord: {type: String, default: 'Default Word'}
-})
+const mainStore = useMainStore();
 
 // TODO implement the logic for calculating the correct and wrong letter.
 // does this already exist on the main convas and need moving into
