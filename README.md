@@ -4,7 +4,8 @@ Alphabet Chaser is a fun and interactive game designed to help children improve 
 
 ## Availability
 
-The **app will be deployed** and readily available for **contributers to see there work in real life!**
+The **app will be deployed** and readily available for **contributers to see there work in real life!**\
+Deployment is planned for **net and mobile.** Net will come first.
 
 ## Features
 
@@ -24,11 +25,11 @@ To run Alphabet Chaser, ensure you have the following installed:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/CookeJar87/alphabet-chaser.git
+   git clone https://github.com/SoundTuition/alphabet-chaser.git
    ```
-2. Navigate to the project directory:
+2. Navigate to the project frontend directory:
    ```bash
-   cd alphabet-chaser
+   cd alphabet-chaser/frontend
    ```
 3. Install dependencies:
    ```bash
@@ -41,13 +42,15 @@ To run Alphabet Chaser, ensure you have the following installed:
 
 ## Running the Game
 
+### Ensure you are inside the frontend directory!
+
 To start the development server and play the game locally:
 
 ```bash
 npm run dev
 ```
 
-This will launch the game on your default browser. If not, open [http://localhost:3000](http://localhost:3000) manually.
+This will launch the game on your default browser. If not, open [http://localhost:5173](http://localhost:5173) manually.
 
 ## Build for Production
 
