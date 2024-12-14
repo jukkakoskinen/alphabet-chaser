@@ -1,0 +1,46 @@
+# Ignore editor and system files
+*~
+*.sw[mnpcod]
+.tmp
+*.tmp
+*.tmp.*
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+UserInterfaceState.xcuserstate
+$RECYCLE.BIN/
+
+# Logs
+*.log
+log.txt
+npm-debug.log*
+
+# Editor configuration files
+.idea/
+.vscode/
+.vscode/*
+!/.vscode/extensions.json
+
+# Ignore node_modules, dist, and .env for any service
+**/node_modules/
+**/dist/
+**/.env
+
+# Ignore coverage, sourcemaps, build directories for any service
+**/coverage/
+**/.sourcemaps/
+**/.sass-cache/
+**/.ionic/
+**/platforms/
+**/plugins/
+**/www/
+
+# Additional shared cache and build directories
+/build/
+.cache/
+
+# Ignore temporary files or directories
+*.tmp
+*.tmp.*
+*.swp
