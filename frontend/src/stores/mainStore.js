@@ -1,4 +1,4 @@
-import { difference, shuffled, takeRandom } from '@/utils/array';
+import { difference, shuffled } from '@/utils/array';
 import { defineStore } from 'pinia';
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -8,7 +8,7 @@ function createWordRelatedState(words = DEFAULT_WORDS) {
     if (!words.length) {
         throw new Error("expected words");
     }
-    const randomWord = takeRandom(shuffled(words));
+    const randomWord = shuffled(words)[0];
     const correctLetters = randomWord.split("");
     const wrongLetters = shuffled(difference(ALPHABET, correctLetters));
     

@@ -11,7 +11,3 @@ export function shuffled(els) {
     }
     return shuffled;
 }
-    
-export function takeRandom(els) {
-    return els[Math.floor(Math.random() * els.length)];
-}
